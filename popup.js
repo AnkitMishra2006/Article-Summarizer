@@ -4,10 +4,10 @@ document.getElementById("summarize").addEventListener("click", () => {
 
   resultDiv.innerHTML = "<div class='loader'></div>";
 
-  chrome.storage.sync.get(["geminiApiKey"], ({ geminiApiKey }) => {
-    if (!geminiApiKey) {
+  chrome.storage.sync.get(["geminiApiKey"], async (result) => {
+    if (!result.geminiApiKey) {
       resultDiv.innerHTML =
-        "Please set your Gemini API key in the options page.";
+        "API key not found. Please set your API key in the extension options.";
       return;
     }
 
@@ -15,20 +15,21 @@ document.getElementById("summarize").addEventListener("click", () => {
       chrome.tabs.sendMessage(
         tab.id,
         { type: "GET_ARTICLE_TEXT" },
-        async ({ text }) => {
-          if (!text) {
-            resultDiv.innerHTML = "Couldn't Extract Text from this page.";
+        async (res) => {
+          if (!res || !res.text) {
+            resultDiv.innerText =
+              "Could not extract article text from this page.";
             return;
           }
 
           try {
             const summary = await getGeminiSummary(
-              text,
+              res.text,
               summaryType,
-              geminiApiKey
+              result.geminiApiKey
             );
 
-            resultDiv.textContent = summary;
+            resultDiv.innerText = summary;
           } catch (error) {
             console.error("Error parsing response:", error);
             resultDiv.innerHTML = "Error parsing response from Gemini API.";
@@ -41,17 +42,24 @@ document.getElementById("summarize").addEventListener("click", () => {
 });
 
 document.getElementById("copy-btn").addEventListener("click", () => {
-  const txt = document.getElementById("result").innerText;
-  if (!txt) return;
+  const summaryText = document.getElementById("result").innerText;
 
-  navigator.clipboard.writeText(txt).then(() => {
-    const copyBtn = document.getElementById("copy-btn");
-    const old = copyBtn.textContent;
-    copyBtn.textContent = "Copied!";
-    setTimeout(() => {
-      copyBtn.textContent = old;
-    }, 2000);
-  });
+  if (summaryText && summaryText.trim() !== "") {
+    navigator.clipboard
+      .writeText(summaryText)
+      .then(() => {
+        const copyBtn = document.getElementById("copy-btn");
+        const originalText = copyBtn.innerText;
+
+        copyBtn.innerText = "Copied!";
+        setTimeout(() => {
+          copyBtn.innerText = originalText;
+        }, 2000);
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
+  }
 });
 
 async function getGeminiSummary(rawText, summaryType, apiKey) {
