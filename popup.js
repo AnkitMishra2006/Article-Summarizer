@@ -40,6 +40,20 @@ document.getElementById("summarize").addEventListener("click", () => {
   });
 });
 
+document.getElementById("copy-btn").addEventListener("click", () => {
+  const txt = document.getElementById("result").innerText;
+  if (!txt) return;
+
+  navigator.clipboard.writeText(txt).then(() => {
+    const copyBtn = document.getElementById("copy-btn");
+    const old = copyBtn.textContent;
+    copyBtn.textContent = "Copied!";
+    setTimeout(() => {
+      copyBtn.textContent = old;
+    }, 2000);
+  });
+});
+
 async function getGeminiSummary(rawText, summaryType, apiKey) {
   const max = 20000;
   const truncatedText =
@@ -94,17 +108,3 @@ async function getGeminiSummary(rawText, summaryType, apiKey) {
     throw new Error("Failed to generate summary. Please try again later.");
   }
 }
-
-document.getElementById("copy-btn").addEventListener("click", () => {
-  const txt = document.getElementById("result").innerText;
-  if (!txt) return;
-
-  navigator.clipboard.writeText(txt).then(() => {
-    const copyBtn = document.getElementById("copy-btn");
-    const old = copyBtn.textContent;
-    copyBtn.textContent = "Copied!";
-    setTimeout(() => {
-      copyBtn.textContent = old;
-    }, 2000);
-  });
-});
