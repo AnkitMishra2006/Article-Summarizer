@@ -5,7 +5,7 @@
   "description": "Summarize news articles using AI.",
 
   "permissions": ["activeTab", "scripting", "storage"],
-  "actions": {
+  "action": {
     "default_popup": "popup.html",
     "default_icon": "icon.png"
   },
